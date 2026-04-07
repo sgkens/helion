@@ -21,3 +21,6 @@
 - **Auth**: `JwtAuthMiddleware` injects `X-Helion-Tenant-Id` header for downstream routing.
 - **Backup**: Recovery uses `restic dump` streamed directly into `psql` to avoid disk I/O bottlenecks.
 - **Engine**: REST filters use dot notation (e.g., `?age=gt.18`).
+- **Config**: Environment variables `HELION_INFRA_CONNECTION_STRING`, `HELION_SECURITY_JWT_TTL`, and `HELION_SECURITY_ACME_ENABLED` override YAML.
+- **Locks**: HA ACME synchronization uses `pg_try_advisory_lock(42001)`.
+- **Maintenance**: `MaintenanceMiddleware` returns `503` with `Retry-After: 5` for locked tenants.

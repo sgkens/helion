@@ -60,6 +60,7 @@ processManager.StartDataEngine(config.Infrastructure.ConnectionString);
 // 7. Middleware Pipeline
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseMiddleware<JwtAuthMiddleware>();
+app.UseMiddleware<MaintenanceMiddleware>();
 app.UseMiddleware<RateLimiterMiddleware>(); // Interlocked TokenBucket
 
 // 8. UDS Reverse Proxy

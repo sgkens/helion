@@ -63,3 +63,14 @@
 - 🟦 **Security**: Implemented `JwtAuthMiddleware` for stateless tenant resolution and header injection.
 - 🟦 **Backup**: Implemented `RestoreOrchestrator` for point-in-time recovery via streaming restic dumps.
 - 🟦 **Engine**: Enhanced `TranslateUrlQuery` to support advanced filtering (gt, lt, neq, like) and pagination (limit, offset).
+
+## [2026-04-08] - Resilience & Configuration (v4.1.2)
+
+### feat(resilience): Implemented Config Interpolation, Cert Locks, and Maintenance Mode
+- **build**: minor
+- **Notes**: Completed adversarial constraint implementations for production stability.
+
+#### Feature Additions:
+- 🟦 **Pass 16**: Implemented Environment Variable interpolation over YAML configuration.
+- 🟦 **Pass 14**: Implemented HA Cert Locks using Postgres advisory locks for ACME synchronization.
+- 🟦 **Pass 7**: Implemented `MaintenanceMiddleware` for tenant migration locking (503 handling).

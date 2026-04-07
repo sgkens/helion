@@ -11,17 +11,36 @@ public class HelionConfig
 
     public static HelionConfig Load(string filePath = "helion.yml")
     {
-        if (!File.Exists(filePath))
+        HelionConfig config;
+        if (File.Exists(filePath))
         {
-            return GenerateDefaultConfig(filePath);
+            var yaml = File.ReadAllText(filePath);
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                .Build();
+            config = deserializer.Deserialize<HelionConfig>(yaml);
+        }
+        else
+        {
+            config = GenerateDefaultConfig(filePath);
         }
 
-        var yaml = File.ReadAllText(filePath);
-        var deserializer = new DeserializerBuilder()
-            .WithNamingConvention(UnderscoredNamingConvention.Instance)
-            .Build();
+        // 20-Pass Fix: Config Interpolation (Env Vars override YAML)
+        ApplyEnvironmentOverrides(config);
 
-        return deserializer.Deserialize<HelionConfig>(yaml);
+        return config;
+    }
+
+    private static void ApplyEnvironmentOverrides(HelionConfig config)
+    {
+        var infraConn = Environment.GetEnvironmentVariable("HELION_INFRA_CONNECTION_STRING");
+        if (!string.IsNullOrEmpty(infraConn)) config.Infrastructure.ConnectionString = infraConn;
+
+        var jwtTtl = Environment.GetEnvironmentVariable("HELION_SECURITY_JWT_TTL");
+        if (int.TryParse(jwtTtl, out var ttl)) config.Security.JwtTtlSeconds = ttl;
+
+        var acmeEnabled = Environment.GetEnvironmentVariable("HELION_SECURITY_ACME_ENABLED");
+        if (bool.TryParse(acmeEnabled, out var enabled)) config.Security.EnableAcme = enabled;
     }
 
     private static HelionConfig GenerateDefaultConfig(string filePath)

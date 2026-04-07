@@ -410,3 +410,11 @@
 /app/src/Host/bin/Debug/net10.0/Docker.DotNet.dll
 /app/src/Host/bin/Debug/net10.0/Spectre.Console.dll
 /app/src/Host/bin/Debug/net10.0/Spectre.Console.Ansi.dll
+/app/src/Host/bin/Debug/net10.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
+/app/src/Host/bin/Debug/net10.0/Microsoft.IdentityModel.Abstractions.dll
+/app/src/Host/bin/Debug/net10.0/Microsoft.IdentityModel.JsonWebTokens.dll
+/app/src/Host/bin/Debug/net10.0/Microsoft.IdentityModel.Logging.dll
+/app/src/Host/bin/Debug/net10.0/Microsoft.IdentityModel.Protocols.dll
+/app/src/Host/bin/Debug/net10.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+/app/src/Host/bin/Debug/net10.0/Microsoft.IdentityModel.Tokens.dll
+/app/src/Host/bin/Debug/net10.0/System.IdentityModel.Tokens.Jwt.dll
