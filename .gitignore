@@ -1,17 +1,26 @@
 # .NET
 bin/
 obj/
+*.user
+*.userosscache
+*.sln.docuser
+.vs/
+.vscode/
+.idea/
 
 # Go
 .runtime/
 src/Engine/helion-engine
+vendor/
 
-# Helion
+# Helion Artifacts
 logs/
 .modules/
 *.sock
+*.db
+*.db-shm
+*.db-wal
 
-# IDEs
-.vscode/
-.vs/
-.idea/
+# OS
+.DS_Store
+Thumbs.db
