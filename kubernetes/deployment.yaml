@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helion-edge
+  labels:
+    app: helion
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: helion
+  template:
+    metadata:
+      labels:
+        app: helion
+    spec:
+      containers:
+        - name: helion-gateway
+          image: registry.gitlab.com/phellams/helion:latest # Update based on your actual registry
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5000
+          env:
+            # Configure Helion via standard environment variables
+            - name: HELION_INFRA_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: helion-secrets
+                  key: system-db-uri
+            - name: HELION_SECURITY_ACME_ENABLED
+              value: "false" # Offload SSL to ingress Controller
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 5
