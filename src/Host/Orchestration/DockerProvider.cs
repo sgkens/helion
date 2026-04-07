@@ -77,6 +77,29 @@ public class DockerProvider
         }
     }
 
+    public async Task StartAllHelionContainersAsync()
+    {
+        try
+        {
+            var containers = await _client.Containers.ListContainersAsync(new ContainersListParameters { All = true });
+            foreach (var container in containers)
+            {
+                if (container.Names.Any(n => n.Contains("/helion-")))
+                {
+                    if (container.State != "running")
+                    {
+                        _logger.LogInfo("Docker", $"Recovering container: {container.Names.First()}");
+                        await _client.Containers.StartContainerAsync(container.ID, null);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Docker", ex);
+        }
+    }
+
     private List<string> BuildEnvList(Dictionary<string, string> envVars)
     {
         var list = new List<string>();

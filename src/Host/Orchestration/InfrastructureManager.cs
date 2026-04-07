@@ -32,6 +32,13 @@ public class InfrastructureManager
         }
     }
 
+    public async Task RecoverTenantContainersAsync()
+    {
+        // 20-Pass Fix: Container State Recovery (Start registered tenants on boot)
+        _logger.LogInfo("Infrastructure", "Recovering tenant container states...");
+        await _docker.StartAllHelionContainersAsync();
+    }
+
     public async Task ProvisionTenantDatabaseAsync(string tenantId, string engineType)
     {
         _logger.LogInfo("Infrastructure", $"Provisioning {engineType} database for tenant: {tenantId}");

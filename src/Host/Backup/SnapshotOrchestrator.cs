@@ -17,25 +17,32 @@ public class SnapshotOrchestrator
     {
         await _restic.InitializeRepositoryAsync();
 
+        // 20-Pass Fix: Restic Pipe Timeouts (30-minute limit)
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(30));
+
         var dumpProcess = StartPgDump(databaseUri);
         var resticProcess = _restic.StartStdinBackup(snapshotAlias);
 
         try
         {
             // Stream pg_dump stdout directly into restic stdin
-            // This prevents RAM saturation and avoids writing large .sql files to the host disk
-            await dumpProcess.StandardOutput.BaseStream.CopyToAsync(resticProcess.StandardInput.BaseStream);
+            await dumpProcess.StandardOutput.BaseStream.CopyToAsync(resticProcess.StandardInput.BaseStream, cts.Token);
             
-            // Close stdin to signal to restic that the stream is complete
             resticProcess.StandardInput.Close();
 
-            await Task.WhenAll(dumpProcess.WaitForExitAsync(), resticProcess.WaitForExitAsync());
+            await Task.WhenAll(dumpProcess.WaitForExitAsync(cts.Token), resticProcess.WaitForExitAsync(cts.Token));
 
             if (resticProcess.ExitCode != 0)
             {
-                string error = await resticProcess.StandardError.ReadToEndAsync();
+                string error = await resticProcess.StandardError.ReadToEndAsync(cts.Token);
                 throw new BackupException($"Restic backup failed: {error}");
             }
+        }
+        catch (OperationCanceledException)
+        {
+            dumpProcess.Kill();
+            resticProcess.Kill();
+            throw new BackupException("Database snapshot operation timed out after 30 minutes.");
         }
         finally
         {

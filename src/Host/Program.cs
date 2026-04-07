@@ -54,8 +54,11 @@ logger.LogInfo("System", "Helion Edge Gateway Booting...");
 // 20-Pass Fix: Auto-Bootstrap System DB
 await infraManager.EnsureSystemDatabaseAsync(config.Infrastructure.ConnectionString);
 
-// 20-Pass Fix: Boot Race Conditions (ProcessManager handles internal wait)
-processManager.StartDataEngine(config.Infrastructure.ConnectionString); 
+// 20-Pass Fix: Container State Recovery
+await infraManager.RecoverTenantContainersAsync();
+
+// 20-Pass Fix: Boot Race Conditions (Awaits Go Engine /health ready)
+await processManager.StartDataEngineAsync(config.Infrastructure.ConnectionString); 
 
 // 7. Middleware Pipeline
 app.UseMiddleware<GlobalExceptionMiddleware>();

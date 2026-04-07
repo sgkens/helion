@@ -23,14 +23,53 @@ public class ProcessManager : IDisposable
         _logger = logger;
     }
 
-    public void StartDataEngine(string systemDbUri)
+    public async Task StartDataEngineAsync(string systemDbUri)
     {
         UdsPath = Path.Combine(Path.GetTempPath(), $"helion_{Guid.NewGuid():N}.sock");
         IpcToken = GenerateSecureToken();
 
         CleanupOrphanedSockets();
 
-        Task.Run(() => MonitorProcess(systemDbUri, _cts.Token));
+        _ = Task.Run(() => MonitorProcess(systemDbUri, _cts.Token));
+
+        // 20-Pass Fix: Boot Race Conditions (Wait for Go Engine)
+        await WaitForEngineReadyAsync(_cts.Token);
+    }
+
+    private async Task WaitForEngineReadyAsync(CancellationToken token)
+    {
+        using var handler = new SocketsHttpHandler
+        {
+            ConnectCallback = async (context, cancellationToken) =>
+            {
+                var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+                await socket.ConnectAsync(new UnixDomainSocketEndPoint(UdsPath!), cancellationToken);
+                return new NetworkStream(socket, ownsSocket: true);
+            }
+        };
+
+        using var client = new HttpClient(handler);
+        int attempts = 0;
+        while (!token.IsCancellationRequested && attempts < 30)
+        {
+            try
+            {
+                var response = await client.GetAsync("http://localhost/health", token);
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInfo("ProcessManager", "Data Engine is ready.");
+                    return;
+                }
+            }
+            catch
+            {
+                // Engine not ready yet
+            }
+            attempts++;
+            await Task.Delay(500, token);
+        }
+
+        throw new Exception("Data Engine failed to reach ready state within 15 seconds.");
     }
 
     private void CleanupOrphanedSockets()

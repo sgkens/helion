@@ -1,5 +1,5 @@
 # HELION: Master Product Requirements Document
-**Version:** 4.1.0 (Stylistic Polish & Environmental Calibration)
+**Version:** 0.2.4 (Security & Lifecycle Hardening)
 **Date:** Current
 **Classification:** Enterprise Implementation Blueprint & Autonomous Agent Directives
 

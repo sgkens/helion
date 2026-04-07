@@ -16,13 +16,16 @@ public class LuaEngine : IDisposable
         _state.OpenLibs();
         
         // 20-Pass Fix: Sandboxed Automation (10,000 instructions limit)
-        _state.SetHook((IntPtr L, IntPtr ar) => {
-            _instructionCount++;
-            if (_instructionCount > MaxInstructions)
-            {
-                throw new Exception("Lua execution exceeded instruction limit.");
-            }
-        }, LuaHookMask.Count, 1);
+        _state.SetHook(OnLuaHook, LuaHookMask.Count, 1);
+    }
+
+    private void OnLuaHook(IntPtr L, IntPtr ar)
+    {
+        _instructionCount++;
+        if (_instructionCount > MaxInstructions)
+        {
+            throw new Exception($"Lua execution exceeded instruction limit of {MaxInstructions}.");
+        }
     }
 
     public void ExecuteScript(string script)
