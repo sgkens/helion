@@ -2,6 +2,7 @@ namespace Helion.Host.Telemetry;
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Npgsql;
@@ -37,6 +38,9 @@ public class PostgresLogSink : IDisposable
 
     private async Task ProcessLogQueueAsync(CancellationToken token)
     {
+        const int batchSize = 100;
+        var currentBatch = new List<LogEntry>();
+
         while (!token.IsCancellationRequested)
         {
             try
@@ -46,27 +50,44 @@ public class PostgresLogSink : IDisposable
 
                 while (!token.IsCancellationRequested)
                 {
-                    var entry = _logQueue.Take(token);
-                    await using var cmd = new NpgsqlCommand(@"
-                        INSERT INTO system_logs (timestamp, level, context, message, correlation_id) 
-                        VALUES (@ts, @lvl, @ctx, @msg, @corr)", connection);
-                        
-                    cmd.Parameters.AddWithValue("ts", entry.Timestamp);
-                    cmd.Parameters.AddWithValue("lvl", entry.Level);
-                    cmd.Parameters.AddWithValue("ctx", entry.Context);
-                    cmd.Parameters.AddWithValue("msg", entry.Message);
-                    cmd.Parameters.AddWithValue("corr", (object?)entry.CorrelationId ?? DBNull.Value);
-                    
-                    await cmd.ExecuteNonQueryAsync(token);
+                    // Wait for the first item
+                    if (_logQueue.TryTake(out var firstEntry, -1, token))
+                    {
+                        currentBatch.Add(firstEntry);
+
+                        // Try to take more items to fill the batch
+                        while (currentBatch.Count < batchSize && _logQueue.TryTake(out var nextEntry))
+                        {
+                            currentBatch.Add(nextEntry);
+                        }
+
+                        // 20-Pass Fix: High-throughput log batching
+                        await using var batch = new NpgsqlBatch(connection);
+                        foreach (var entry in currentBatch)
+                        {
+                            var cmd = new NpgsqlBatchCommand(@"
+                                INSERT INTO system_logs (timestamp, level, context, message, correlation_id) 
+                                VALUES ($1, $2, $3, $4, $5)");
+                            
+                            cmd.Parameters.AddWithValue(entry.Timestamp);
+                            cmd.Parameters.AddWithValue(entry.Level);
+                            cmd.Parameters.AddWithValue(entry.Context);
+                            cmd.Parameters.AddWithValue(entry.Message);
+                            cmd.Parameters.AddWithValue((object?)entry.CorrelationId ?? DBNull.Value);
+                            batch.BatchCommands.Add(cmd);
+                        }
+
+                        await batch.ExecuteNonQueryAsync(token);
+                        currentBatch.Clear();
+                    }
                 }
             }
             catch (Exception ex)
             {
-                // In a real scenario, we'd log this to console or a flat file
                 Console.WriteLine($"[PostgresLogSink Error] {ex.Message}");
                 if (!token.IsCancellationRequested)
                 {
-                    await Task.Delay(5000, token); // Wait before retrying
+                    await Task.Delay(5000, token); 
                 }
             }
         }
@@ -98,7 +119,6 @@ public class PostgresLogSink : IDisposable
 
     public async Task RotatePartitionsAsync()
     {
-        // 20-Pass Fix: Telemetry Pruning (Daily rotation + 30-day drop)
         try
         {
             await using var connection = new NpgsqlConnection(_systemDbUri);
@@ -111,7 +131,6 @@ public class PostgresLogSink : IDisposable
             string rangeStart = tomorrow.ToString("yyyy-MM-dd");
             string rangeEnd = nextDay.ToString("yyyy-MM-dd");
 
-            // 1. Create Tomorrow's Partition
             await using (var cmd = new NpgsqlCommand($@"
                 CREATE TABLE IF NOT EXISTS {partitionName} 
                 PARTITION OF system_logs 
@@ -120,10 +139,7 @@ public class PostgresLogSink : IDisposable
                 await cmd.ExecuteNonQueryAsync();
             }
 
-            // 2. Drop Partitions older than 30 days
             var cutoff = DateTime.UtcNow.AddDays(-30);
-            // In a real production system, we would query pg_inherits or similar to find matching tables.
-            // For now, we attempt to drop the specific day's partition if it follows our naming convention.
             string oldPartitionName = $"system_logs_y{cutoff:yyyy}m{cutoff:MM}d{cutoff:dd}";
             await using (var cmd = new NpgsqlCommand($"DROP TABLE IF EXISTS {oldPartitionName}", connection))
             {

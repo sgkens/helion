@@ -1,0 +1,43 @@
+image: sgkens/phellams-automator:2.8.0
+
+stages:
+  - build
+  - test
+
+variables:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  GO111MODULE: "on"
+
+build_host:
+  stage: build
+  script:
+    - cd src/Host
+    - dotnet restore Helion.Host.csproj
+    - dotnet build Helion.Host.csproj -c Release
+  artifacts:
+    paths:
+      - src/Host/bin/Release/net10.0/
+
+build_engine:
+  stage: build
+  script:
+    - cd src/Engine
+    - go mod tidy
+    - go build -o ../../.runtime/helion-engine main.go
+  artifacts:
+    paths:
+      - .runtime/helion-engine
+
+test_host:
+  stage: test
+  script:
+    - cd src/Host
+    - # dotnet test --no-build -c Release (Once tests are implemented)
+    - echo "Executing Host Unit Tests..."
+
+test_engine:
+  stage: test
+  script:
+    - cd src/Engine
+    - # go test ./... (Once tests are implemented)
+    - echo "Executing Engine Unit Tests..."

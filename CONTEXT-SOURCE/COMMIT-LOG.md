@@ -86,3 +86,18 @@
 - 🟦 **Encryption**: Enhanced `ResticManager` to support encrypted backup and restore streams via `password-command`.
 - 🟦 **SSE Filtering**: Implemented tenant isolation in `SSEDemux` to ensure secure real-time event broadcasting.
 - 🟦 **Lifecycle**: Refined Lua instruction limiting and implemented Go Engine health-check wait loop.
+
+## [2026-04-08] - Automation & UI Refinement (v0.3.1)
+
+### feat(ci): Implemented GitLab CI and ZeroDark UI Overhaul
+- **build**: patch
+- **Notes**: Completed repository readiness chores and refined the visual stack for production preview.
+
+#### Feature Additions:
+- 🟦 **CI/CD**: Implemented `.gitlab-ci.yml` with parallel build stages for Host and Engine.
+- 🟦 **UI**: Overhauled `index.html` with Tailwind CSS, Alpine.js logic, and real-time telemetry visuals.
+- 🟦 **Perf**: Optimized `PostgresLogSink` with `NpgsqlBatch` for high-throughput logging.
+
+#### Bug Fixes:
+- 🟩 **Git**: Sanitized repository index and refined `.gitignore` to prevent artifact pollution.
+- 🟩 **Logging**: Fixed potential log-loss bug by ensuring logs are only dequeued after successful DB connection.

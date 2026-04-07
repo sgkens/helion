@@ -7,6 +7,7 @@
 - **IPC**: Uses Unix Domain Sockets (UDS) by default for high performance.
 - **Theming**: Uses `Spectre.Console` for advanced CLI styling and ASCII logo rendering.
 - **Workflow**: Adheres to `develop` > `feature-branch` > `main` branching model.
+- **CI/CD**: `.gitlab-ci.yml` established for automated Host/Engine builds.
 
 ## Fixes & Optimizations
 - **LuaEngine**: `DoString` returns `bool` in KeraLua 1.4.1, not `LuaStatus`. Fixed check to `if (!result)`.
@@ -27,5 +28,5 @@
 - **Maintenance**: `MaintenanceMiddleware` returns `503` with `Retry-After: 5` for locked tenants.
 - **RBAC**: Stateless bitwise flag validation via `helion_perms` claim.
 - **SSE**: Tenant-isolated broadcasting via `SSEDemux` maps.
-- **Git**: Repository sanitized with comprehensive `.gitignore` and deep purge of build artifacts (`bin/`, `obj/`, `.runtime/`).
-- **Documentation**: `README.md` updated to "release-ready" standard with integrated TOC.
+- **Perf**: `PostgresLogSink` uses `NpgsqlBatch` for high-throughput insertion.
+- **Frontend**: Alpine.js + Tailwind CSS used for the "ZeroDark" dashboard architecture.
