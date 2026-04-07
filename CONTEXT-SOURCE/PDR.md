@@ -1,5 +1,5 @@
 # HELION: Master Product Requirements Document
-**Version:** 0.2.4 (Security & Lifecycle Hardening)
+**Version:** 0.3.0 (Beta Release - Core Expansion Complete)
 **Date:** Current
 **Classification:** Enterprise Implementation Blueprint & Autonomous Agent Directives
 

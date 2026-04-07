@@ -27,3 +27,5 @@
 - **Maintenance**: `MaintenanceMiddleware` returns `503` with `Retry-After: 5` for locked tenants.
 - **RBAC**: Stateless bitwise flag validation via `helion_perms` claim.
 - **SSE**: Tenant-isolated broadcasting via `SSEDemux` maps.
+- **Git**: Repository sanitized with comprehensive `.gitignore` and deep purge of build artifacts (`bin/`, `obj/`, `.runtime/`).
+- **Documentation**: `README.md` updated to "release-ready" standard with integrated TOC.
