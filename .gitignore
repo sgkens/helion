@@ -1,0 +1,17 @@
+# .NET
+bin/
+obj/
+
+# Go
+.runtime/
+src/Engine/helion-engine
+
+# Helion
+logs/
+.modules/
+*.sock
+
+# IDEs
+.vscode/
+.vs/
+.idea/
