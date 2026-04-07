@@ -6,6 +6,7 @@
 - **Go**: Version downgraded to 1.19 in `go.mod` to match container capabilities.
 - **IPC**: Uses Unix Domain Sockets (UDS) by default for high performance.
 - **Theming**: Uses `Spectre.Console` for advanced CLI styling and ASCII logo rendering.
+- **Workflow**: Adheres to `develop` > `feature-branch` > `main` branching model.
 
 ## Fixes & Optimizations
 - **LuaEngine**: `DoString` returns `bool` in KeraLua 1.4.1, not `LuaStatus`. Fixed check to `if (!result)`.
@@ -24,3 +25,5 @@
 - **Config**: Environment variables `HELION_INFRA_CONNECTION_STRING`, `HELION_SECURITY_JWT_TTL`, and `HELION_SECURITY_ACME_ENABLED` override YAML.
 - **Locks**: HA ACME synchronization uses `pg_try_advisory_lock(42001)`.
 - **Maintenance**: `MaintenanceMiddleware` returns `503` with `Retry-After: 5` for locked tenants.
+- **RBAC**: Stateless bitwise flag validation via `helion_perms` claim.
+- **SSE**: Tenant-isolated broadcasting via `SSEDemux` maps.

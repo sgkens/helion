@@ -10,20 +10,22 @@ import (
 )
 
 type SSEEvent struct {
-	Channel string          `json:"channel"`
-	Payload json.RawMessage `json:"payload"`
+	TenantID string          `json:"tenant_id"`
+	Channel  string          `json:"channel"`
+	Payload  json.RawMessage `json:"payload"`
 }
 
 type SSEDemux struct {
 	pool     *pgxpool.Pool
-	clients  map[string]map[chan SSEEvent]bool
+	// clients maps TenantID -> Channel -> Set of client channels
+	clients  map[string]map[string]map[chan SSEEvent]bool
 	mu       sync.RWMutex
 }
 
 func NewSSEDemux(pool *pgxpool.Pool) *SSEDemux {
 	return &SSEDemux{
 		pool:    pool,
-		clients: make(map[string]map[chan SSEEvent]bool),
+		clients: make(map[string]map[string]map[chan SSEEvent]bool),
 	}
 }
 
@@ -62,28 +64,36 @@ func (d *SSEDemux) Start(ctx context.Context) {
 	}
 }
 
-func (d *SSEDemux) Subscribe(channel string) chan SSEEvent {
+func (d *SSEDemux) Subscribe(tenantID string, channel string) chan SSEEvent {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	if _, ok := d.clients[channel]; !ok {
-		d.clients[channel] = make(map[chan SSEEvent]bool)
+	if _, ok := d.clients[tenantID]; !ok {
+		d.clients[tenantID] = make(map[string]map[chan SSEEvent]bool)
+	}
+	if _, ok := d.clients[tenantID][channel]; !ok {
+		d.clients[tenantID][channel] = make(map[chan SSEEvent]bool)
 	}
 
 	ch := make(chan SSEEvent, 10)
-	d.clients[channel][ch] = true
+	d.clients[tenantID][channel][ch] = true
 	return ch
 }
 
-func (d *SSEDemux) Unsubscribe(channel string, ch chan SSEEvent) {
+func (d *SSEDemux) Unsubscribe(tenantID string, channel string, ch chan SSEEvent) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	if subs, ok := d.clients[channel]; ok {
-		delete(subs, ch)
-		close(ch)
-		if len(subs) == 0 {
-			delete(d.clients, channel)
+	if tenantSubs, ok := d.clients[tenantID]; ok {
+		if subs, ok := tenantSubs[channel]; ok {
+			delete(subs, ch)
+			close(ch)
+			if len(subs) == 0 {
+				delete(tenantSubs, channel)
+			}
+		}
+		if len(tenantSubs) == 0 {
+			delete(d.clients, tenantID)
 		}
 	}
 }
@@ -92,12 +102,15 @@ func (d *SSEDemux) broadcast(event SSEEvent) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
-	if subs, ok := d.clients[event.Channel]; ok {
-		for ch := range subs {
-			select {
-			case ch <- event:
-			default:
-				// Buffer full, drop event for this slow client
+	// 20-Pass Fix: SSE Broadcast Filtering (Tenant Isolation)
+	if tenantSubs, ok := d.clients[event.TenantID]; ok {
+		if subs, ok := tenantSubs[event.Channel]; ok {
+			for ch := range subs {
+				select {
+				case ch <- event:
+				default:
+					// Buffer full, drop event for this slow client
+				}
 			}
 		}
 	}

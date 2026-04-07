@@ -153,6 +153,12 @@ func (er *EngineRouter) handleSSERequest(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	tenantID := r.Header.Get("X-Helion-Tenant-Id")
+	if tenantID == "" {
+		http.Error(w, "Missing X-Helion-Tenant-Id header", http.StatusBadRequest)
+		return
+	}
+
 	channel := r.URL.Query().Get("channel")
 	if channel == "" {
 		http.Error(w, "Missing channel parameter", http.StatusBadRequest)
@@ -165,8 +171,8 @@ func (er *EngineRouter) handleSSERequest(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	ch := er.sseDemux.Subscribe(channel)
-	defer er.sseDemux.Unsubscribe(channel, ch)
+	ch := er.sseDemux.Subscribe(tenantID, channel)
+	defer er.sseDemux.Unsubscribe(tenantID, channel, ch)
 
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")

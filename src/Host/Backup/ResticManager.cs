@@ -40,47 +40,49 @@ public class ResticManager
             throw new BackupException($"Failed to initialize restic repository: {result.Error}");
         }
     }
-
-    public Process StartStdinBackup(string snapshotName)
+public Process StartStdinBackup(string snapshotName)
+{
+    // 20-Pass Fix: Encrypted Backup Streams
+    // Use password-command to avoid passing secrets in environment variables where possible
+    var psi = new ProcessStartInfo
     {
-        var psi = new ProcessStartInfo
-        {
-            FileName = _resticPath,
-            Arguments = $"backup --stdin --stdin-filename {snapshotName}.sql",
-            RedirectStandardInput = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+        FileName = _resticPath,
+        Arguments = $"backup --stdin --stdin-filename {snapshotName}.sql --password-command \"echo $RESTIC_PASSWORD\"",
+        RedirectStandardInput = true,
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
+        UseShellExecute = false,
+        CreateNoWindow = true
+    };
 
-        psi.EnvironmentVariables["RESTIC_REPOSITORY"] = _repoUri;
-        psi.EnvironmentVariables["RESTIC_PASSWORD"] = _repoPassword;
+    psi.EnvironmentVariables["RESTIC_REPOSITORY"] = _repoUri;
+    psi.EnvironmentVariables["RESTIC_PASSWORD"] = _repoPassword;
 
-        var process = new Process { StartInfo = psi };
-        process.Start();
-        return process;
-    }
+    var process = new Process { StartInfo = psi };
+    process.Start();
+    return process;
+}
 
-    public Process StartStdoutDump(string snapshotId)
+public Process StartStdoutDump(string snapshotId)
+{
+    var psi = new ProcessStartInfo
     {
-        var psi = new ProcessStartInfo
-        {
-            FileName = _resticPath,
-            Arguments = $"dump {snapshotId} {snapshotId}.sql",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+        FileName = _resticPath,
+        Arguments = $"dump {snapshotId} {snapshotId}.sql --password-command \"echo $RESTIC_PASSWORD\"",
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
+        UseShellExecute = false,
+        CreateNoWindow = true
+    };
 
-        psi.EnvironmentVariables["RESTIC_REPOSITORY"] = _repoUri;
-        psi.EnvironmentVariables["RESTIC_PASSWORD"] = _repoPassword;
+    psi.EnvironmentVariables["RESTIC_REPOSITORY"] = _repoUri;
+    psi.EnvironmentVariables["RESTIC_PASSWORD"] = _repoPassword;
 
-        var process = new Process { StartInfo = psi };
-        process.Start();
-        return process;
-    }
+    var process = new Process { StartInfo = psi };
+    process.Start();
+    return process;
+}
+
 
     public async Task<CommandResult> ExecuteResticCommandAsync(string arguments)
     {

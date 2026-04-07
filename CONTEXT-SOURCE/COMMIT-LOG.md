@@ -74,3 +74,15 @@
 - 🟦 **Pass 16**: Implemented Environment Variable interpolation over YAML configuration.
 - 🟦 **Pass 14**: Implemented HA Cert Locks using Postgres advisory locks for ACME synchronization.
 - 🟦 **Pass 7**: Implemented `MaintenanceMiddleware` for tenant migration locking (503 handling).
+
+## [2026-04-08] - Beta Release Core Expansion (v0.3.0)
+
+### feat(core): Implemented RBAC, Encrypted Backups, and SSE Filtering
+- **build**: minor
+- **Notes**: Finalized key features for the Beta Release milestone. Transitioned to develop/feature-branch workflow.
+
+#### Feature Additions:
+- 🟦 **RBAC**: Implemented stateless `RbacManager` using bitwise flags for efficient permission validation.
+- 🟦 **Encryption**: Enhanced `ResticManager` to support encrypted backup and restore streams via `password-command`.
+- 🟦 **SSE Filtering**: Implemented tenant isolation in `SSEDemux` to ensure secure real-time event broadcasting.
+- 🟦 **Lifecycle**: Refined Lua instruction limiting and implemented Go Engine health-check wait loop.
