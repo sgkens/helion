@@ -18,3 +18,6 @@
 - **Spectre.Console**: Always use `Markup.Escape()` for variable data to prevent parsing crashes.
 - **ASCII Logo**: Implemented with explicit `[string]` casting for robust placeholder replacement.
 - **Rule Alignment**: Use `Rule.Justification = Justify.Left` in Spectre.Console 0.55.0.
+- **Auth**: `JwtAuthMiddleware` injects `X-Helion-Tenant-Id` header for downstream routing.
+- **Backup**: Recovery uses `restic dump` streamed directly into `psql` to avoid disk I/O bottlenecks.
+- **Engine**: REST filters use dot notation (e.g., `?age=gt.18`).

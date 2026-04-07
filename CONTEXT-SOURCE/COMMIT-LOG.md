@@ -52,3 +52,14 @@
 - 🟩 **Spectre.Console**: Resolved `Rule` alignment property compatibility issues (using `Justification`).
 - 🟩 **Code Cleanup**: Removed unused fields in `LogPartitionWorker`.
 - 🟩 **Robustness**: Ensured all console output uses `Markup.Escape()` to prevent parsing failures.
+
+## [2026-04-08] - Feature Expansion (Auth, PITR, Advanced Queries)
+
+### feat(logic): Implemented JWT Auth, Restore Orchestration, and Filtered Query Translation
+- **build**: minor
+- **Notes**: Expanded the core logic to include security enforcement and advanced data handling.
+
+#### Feature Additions:
+- 🟦 **Security**: Implemented `JwtAuthMiddleware` for stateless tenant resolution and header injection.
+- 🟦 **Backup**: Implemented `RestoreOrchestrator` for point-in-time recovery via streaming restic dumps.
+- 🟦 **Engine**: Enhanced `TranslateUrlQuery` to support advanced filtering (gt, lt, neq, like) and pagination (limit, offset).

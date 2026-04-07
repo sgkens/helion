@@ -62,6 +62,26 @@ public class ResticManager
         return process;
     }
 
+    public Process StartStdoutDump(string snapshotId)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = _resticPath,
+            Arguments = $"dump {snapshotId} {snapshotId}.sql",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        psi.EnvironmentVariables["RESTIC_REPOSITORY"] = _repoUri;
+        psi.EnvironmentVariables["RESTIC_PASSWORD"] = _repoPassword;
+
+        var process = new Process { StartInfo = psi };
+        process.Start();
+        return process;
+    }
+
     public async Task<CommandResult> ExecuteResticCommandAsync(string arguments)
     {
         var psi = new ProcessStartInfo
