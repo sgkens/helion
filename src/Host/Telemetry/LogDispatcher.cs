@@ -37,7 +37,7 @@ public class LogDispatcher
         string? stackTrace = ex.StackTrace;
 
         // 1. Console Sink (Spectre)
-        AnsiConsole.MarkupLine($"[{HelionPalette.Error.ToMarkup()}][ERROR] {timestamp} | {Markup.Escape(context)} | {Markup.Escape(message)}[/]");
+        AnsiConsole.MarkupLine($"[{HelionPalette.Error.ToMarkup()}][[ERROR]] {timestamp} | {Markup.Escape(context)} | {Markup.Escape(message)}[/]");
 
         // 2. Postgres Sink
         PostgresSink?.EnqueueLog("ERROR", context, message, correlationId);
@@ -51,7 +51,7 @@ public class LogDispatcher
         string timestamp = DateTime.UtcNow.ToString("O");
 
         // 1. Console Sink (Spectre)
-        AnsiConsole.MarkupLine($"[{HelionPalette.Accent.ToMarkup()}][INFO]  {timestamp} | {Markup.Escape(context)} | {Markup.Escape(message)}[/]");
+        AnsiConsole.MarkupLine($"[{HelionPalette.Accent.ToMarkup()}][[INFO]]  {timestamp} | {Markup.Escape(context)} | {Markup.Escape(message)}[/]");
 
         // 2. Postgres Sink
         PostgresSink?.EnqueueLog("INFO", context, message, correlationId);

@@ -45,13 +45,16 @@ public class HelionConfig
 
     private static HelionConfig GenerateDefaultConfig(string filePath)
     {
+        var defaultUser = Environment.GetEnvironmentVariable("HOMELAB_POSTGRES_USER") ?? "postgres";
+        var defaultPass = Environment.GetEnvironmentVariable("HOMELAB_POSTGRES_PASSWORD") ?? "postgres";
+
         var config = new HelionConfig
         {
             Infrastructure = new InfrastructureConfig 
             { 
                 Strategy = "managed_local", 
                 Engine = "postgres:16",
-                ConnectionString = "Host=localhost;Database=helion_system;Username=postgres;Password=postgres"
+                ConnectionString = $"Host=localhost;Database=helion_system;Username={defaultUser};Password={defaultPass}"
             },
             Security = new SecurityConfig 
             { 
