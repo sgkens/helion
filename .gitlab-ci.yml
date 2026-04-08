@@ -3,6 +3,7 @@ image: sgkens/phellams-automator:2.8.0
 stages:
   - build
   - test
+  - docker
 
 variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
@@ -41,3 +42,19 @@ test_engine:
     - cd src/Engine
     - # go test ./... (Once tests are implemented)
     - echo "Executing Engine Unit Tests..."
+
+docker_publish:
+  stage: docker
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  script:
+    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+    - docker build -f docker/Dockerfile -t sgkens/helion:latest .
+    - docker push sgkens/helion:latest
+  only:
+    - main
+    - master
+    - feature/core-expansion
