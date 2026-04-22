@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helion | Zero-Edge BaaS</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/gpu-animations.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#0a0a0a] text-white font-mono selection:bg-blue-500 selection:text-white">
+    <div id="app" x-data="orchestrator" class="min-h-screen flex flex-col">
+        <!-- Top Navigation -->
+        <header class="p-4 border-b border-[#222222] flex justify-between items-center bg-[#111111] sticky top-0 z-50">
+            <div class="flex items-center gap-4">
+                <h1 class="text-xl font-bold tracking-tighter flex items-center gap-2">
+                    <span class="text-blue-500 animate-pulse">💠</span> HELION
+                </h1>
+                <span class="text-[10px] bg-blue-900/30 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/30" x-text="'v' + version"></span>
+            </div>
+            
+            <div id="omnibar" x-data="omnibar" class="relative group">
+                <input type="text" 
+                       x-model="query"
+                       placeholder="Ctrl+K to search command palette..." 
+                       class="bg-[#0a0a0a] border border-[#333333] px-4 py-1.5 rounded-lg text-xs w-80 focus:outline-none focus:border-blue-500 transition-all group-hover:border-[#444444]">
+                <div class="absolute right-3 top-1.5 text-[10px] text-[#555555] pointer-events-none">⌘K</div>
+            </div>
+
+            <div class="flex items-center gap-4 text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
+                    <span class="text-[#888888]" x-text="health"></span>
+                </div>
+                <button class="bg-blue-600 hover:bg-blue-500 px-4 py-1.5 rounded-md font-bold transition-colors">DEPLOY</button>
+            </div>
+        </header>
+
+        <div class="flex flex-1">
+            <!-- Sidebar -->
+            <aside class="w-64 border-r border-[#222222] bg-[#0d0d0d] p-4 flex flex-col gap-2 text-xs">
+                <nav class="flex flex-col gap-1">
+                    <a href="#" class="p-2 bg-blue-500/10 text-blue-400 rounded-md border border-blue-500/20 flex items-center gap-2">
+                        <span>🟦</span> Infrastructure
+                    </a>
+                    <a href="#" class="p-2 hover:bg-[#1a1a1a] text-[#888888] rounded-md transition-colors flex items-center gap-2">
+                        <span>🔹</span> Databases
+                    </a>
+                    <a href="#" class="p-2 hover:bg-[#1a1a1a] text-[#888888] rounded-md transition-colors flex items-center gap-2 text-red-400/70">
+                        <span>🟥</span> Security & Auth
+                    </a>
+                    <a href="#" class="p-2 hover:bg-[#1a1a1a] text-[#888888] rounded-md transition-colors flex items-center gap-2">
+                        <span>🔸</span> Automation Hooks
+                    </a>
+                </nav>
+                <div class="mt-auto pt-4 border-t border-[#222222]">
+                    <div class="p-3 bg-[#111111] rounded-lg border border-[#222222]">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-[#555555]">System Load</span>
+                            <span class="text-blue-400">12%</span>
+                        </div>
+                        <div class="w-full bg-[#222222] h-1 rounded-full overflow-hidden">
+                            <div class="bg-blue-500 h-full w-[12%]"></div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-8 overflow-y-auto bg-[#0a0a0a]">
+                <!-- Telemetry Grid -->
+                <section id="telemetry" class="mb-12">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-sm font-bold uppercase tracking-widest text-[#555555] flex items-center gap-2">
+                            <span class="text-blue-500">🔹</span> Real-time Telemetry
+                        </h2>
+                        <span class="text-[10px] text-[#444444] animate-pulse">🔄 AUTO-REFRESHING</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-[#111111] p-6 border border-[#222222] rounded-xl hover:border-blue-500/30 transition-all group">
+                            <span class="text-[10px] text-[#555555] uppercase font-bold group-hover:text-blue-400 transition-colors">API Latency</span>
+                            <div class="text-3xl font-bold mt-2" x-text="telemetry.latency">0ms</div>
+                            <div class="mt-4 flex items-center gap-1 text-[10px] text-green-500">
+                                <span>▲ 0.2ms</span>
+                                <span class="text-[#444444]">vs last hour</span>
+                            </div>
+                        </div>
+                        <div class="bg-[#111111] p-6 border border-[#222222] rounded-xl hover:border-blue-500/30 transition-all group">
+                            <span class="text-[10px] text-[#555555] uppercase font-bold group-hover:text-blue-400 transition-colors">Active Conns</span>
+                            <div class="text-3xl font-bold mt-2" x-text="telemetry.connections">0</div>
+                            <div class="mt-4 flex items-center gap-1 text-[10px] text-blue-500">
+                                <span x-text="'+' + Math.floor(Math.random()*10)"></span>
+                                <span class="text-[#444444]">streaming nodes</span>
+                            </div>
+                        </div>
+                        <div class="bg-[#111111] p-6 border border-[#222222] rounded-xl hover:border-blue-500/30 transition-all group">
+                            <span class="text-[10px] text-[#555555] uppercase font-bold group-hover:text-blue-400 transition-colors">System Uptime</span>
+                            <div class="text-3xl font-bold mt-2 text-green-500" x-text="telemetry.uptime">0%</div>
+                            <div class="mt-4 flex items-center gap-1 text-[10px] text-[#444444]">
+                                <span>Zero-Edge operational</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- RBAC Control -->
+                    <section x-data="dashboard_rbac" class="bg-[#111111] p-6 border border-[#222222] rounded-xl">
+                        <h2 class="text-sm font-bold uppercase tracking-widest text-[#555555] mb-6 flex items-center gap-2">
+                            <span class="text-red-500">🟥</span> Stateless RBAC Control
+                        </h2>
+                        <div class="space-y-4">
+                            <template x-for="(val, perm) in permissions">
+                                <div class="flex items-center justify-between p-3 bg-[#0a0a0a] rounded-lg border border-[#222222]">
+                                    <span class="text-xs uppercase font-bold text-[#aaaaaa]" x-text="perm"></span>
+                                    <button @click="togglePermission(perm)" 
+                                            :class="val ? 'bg-blue-600 text-white border-blue-400' : 'bg-[#222222] text-[#555555] border-[#333333]'"
+                                            class="text-[10px] px-3 py-1 rounded border transition-all"
+                                            x-text="val ? 'ENABLED' : 'DISABLED'">
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                    </section>
+
+                    <!-- Real-time Event Log -->
+                    <section class="bg-[#111111] p-6 border border-[#222222] rounded-xl">
+                        <h2 class="text-sm font-bold uppercase tracking-widest text-[#555555] mb-6 flex items-center gap-2">
+                            <span class="text-orange-500">🔸</span> Real-time Event Stream
+                        </h2>
+                        <div class="bg-black p-4 rounded-lg border border-[#222222] h-64 overflow-y-auto text-[10px] space-y-2">
+                            <div class="text-blue-400">[SYSTEM] HELION EDGE Gateway initial handshake...</div>
+                            <div class="text-[#555555]">[INFO] UDS Socket established: /tmp/helion_a1b2.sock</div>
+                            <div class="text-green-500">[AUTH] Tenant resolver context: TENANT_PROD_01</div>
+                            <div class="text-[#555555]">[DB] Connection pooled: sqlite_local_cache</div>
+                            <div class="text-orange-400">[WARN] High latency detected on restic stream...</div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- SDKs -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    
+    <!-- App Logic -->
+    <script src="js/orchestrator.js"></script>
+    <script src="js/dashboard_rbac.js"></script>
+</body>
+</html>

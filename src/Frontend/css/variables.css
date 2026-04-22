@@ -1,0 +1,17 @@
+:root {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #111111;
+    --border-color: #222222;
+    --text-primary: #ffffff;
+    --text-secondary: #888888;
+    --accent-blue: #0070f3;
+    --accent-green: #00ff00;
+    --accent-red: #ff0000;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    margin: 0;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+}
